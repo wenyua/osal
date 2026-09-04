@@ -1,5 +1,7 @@
-#ifndef TYPE_H
+﻿#ifndef TYPE_H
 #define TYPE_H
+
+#include <stdint.h>
 
 #define ZSUCCESS                  1
 #define INVALID_TASK              2
@@ -11,52 +13,52 @@
 
 typedef unsigned char       BOOL;
 
-//芯片硬件字长
+//芯片硬件字长，GD32E230 数据总线为32位，保证数据对齐到4字节
 typedef unsigned int        halDataAlign_t;
 
 // Unsigned numbers
-typedef unsigned char       uint8;
-typedef unsigned char       byte;
-typedef unsigned short      uint16;
-typedef unsigned short      int16U;
-typedef unsigned int        uint32;
-typedef unsigned int        int32U;
+typedef uint8_t             uint8;
+typedef uint8_t             byte;
+typedef uint16_t            uint16;
+typedef uint16_t            int16U;
+typedef uint32_t            uint32;
+typedef uint32_t            int32U;
 
 // Signed numbers
-typedef signed char         int8;
-typedef signed short        int16;
-typedef signed int          int32;
+typedef int8_t              int8;
+typedef int16_t             int16;
+typedef int32_t             int32;
 
 #ifndef FALSE
 #define FALSE       0
 #endif
 
-#ifndef ARRAY_NULL
-#define ARRAY_NULL '\0'
+#ifndef TRUE
+#define TRUE        1
 #endif
 
-#ifndef TRUE
-#define TRUE       1
+#ifndef ARRAY_NULL
+#define ARRAY_NULL  '\0'
 #endif
 
 #ifndef OPEN
-#define OPEN       1
+#define OPEN        1
 #endif
 
 #ifndef CLOSE
-#define CLOSE      0
+#define CLOSE       0
 #endif
 
 #ifndef NULL
-#define NULL       ((void*) 0 )
+#define NULL        ((void*) 0)
 #endif
 
 #ifndef HIGH
-#define HIGH       1
+#define HIGH        1
 #endif
 
 #ifndef LOW
-#define LOW        0
+#define LOW         0
 #endif
 
 #ifndef SUCCESS
@@ -67,10 +69,34 @@ typedef signed int          int32;
 #define ERROR       0
 #endif
 
-//#define CLI()         __set_PRIMASK(1)              // Disable Interrupts
-//#define SEI()         __set_PRIMASK(0)              // Enable Interrupts
-#define CLI()         ;              // Disable Interrupts
-#define SEI()         ;              // Enable Interrupts
+/*
+ * GD32E230 为 Cortex-M23 内核，临界区使用 PRIMASK 控制全局中断。
+ * 若工程已提供 CMSIS core_cm23.h，则 __disable_irq/__enable_irq 由
+ * CMSIS 提供；否则可在这里实现内联汇编版本。
+ */
+#if defined(__GNUC__)
+
+#ifndef __disable_irq
+static __inline void __attribute__((always_inline)) __disable_irq(void)
+{
+    __asm volatile ("cpsid i" ::: "memory");
+}
+
+static __inline void __attribute__((always_inline)) __enable_irq(void)
+{
+    __asm volatile ("cpsie i" ::: "memory");
+}
+#endif
+
+#define CLI()         __disable_irq()                 // Disable Interrupts
+#define SEI()         __enable_irq()                 // Enable Interrupts
+
+#else
+
+#define CLI()         __set_PRIMASK(1)               // Disable Interrupts
+#define SEI()         __set_PRIMASK(0)               // Enable Interrupts
+
+#endif
 
 #define HAL_ENABLE_INTERRUPTS()         SEI()       // Enable Interrupts
 #define HAL_DISABLE_INTERRUPTS()        CLI()       // Disable Interrupts

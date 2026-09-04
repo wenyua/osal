@@ -1,23 +1,18 @@
-/**
+﻿/**
  * @file main.c
- * @brief osal运行例程入口
+ * @brief osal 运行例程入口（GD32E230 适配）
  * @version 0.1
- * @date 2019-07-25
- * @author WatWu
+ * @date 2026-09-02
  */
 
 #include "task_event.h"
 
 /**
  * @brief 程序入口
- * @param argc [传入的参数数量]
- * @param argv [传入的参数列表]
- * @return int [无]
+ * @note  在 GD32E230 上由启动文件调用 Reset_Handler -> main。
+ *        若使用 printf 需要提前初始化串口 USART0，并重定向 fputc。
  */
-int main(int argc, char *argv[])
+int main(void)
 {
-    argc = argc;
-    argv = argv;
-
     osal_main();
 }

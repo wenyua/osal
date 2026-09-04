@@ -1,0 +1,22 @@
+making obj/main.d
+making obj/osal_main.d
+making obj/print_task.d
+making obj/statistics_task.d
+making obj/timer.d
+making obj/osal.d
+making obj/osal_event.d
+making obj/osal_memory.d
+making obj/osal_msg.d
+making obj/osal_timer.d
+building ./app/main.c
+building ./app/osal_main.c
+building ./app/print_task.c
+building ./app/statistics_task.c
+building ./hal/timer.c
+building ./osal/osal.c
+building ./osal/osal_event.c
+building ./osal/osal_memory.c
+building ./osal/osal_msg.c
+building ./osal/osal_timer.c
+linking object to linux-osal-example.elf
+EXIT=0
