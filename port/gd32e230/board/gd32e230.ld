@@ -1,6 +1,7 @@
-﻿/* GD32E230 Keil-EVB RAM/FLASH 配置
- * GD32E230 系列：Flash 常见 64KB（此处示例），SRAM 8KB。
- * 若实际芯片 Flash 容量不同，请修改下面两行 LENGTH。
+/*
+ * @file gd32e230.ld
+ * @brief GD32E230 链接脚本: Flash 64KB / SRAM 8KB
+ *        (实际芯片容量不同请修改 LENGTH)
  */
 MEMORY
 {
@@ -8,7 +9,6 @@ MEMORY
     RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 8K
 }
 
-/* 栈大小，8KB RAM 中分配 2KB 栈 */
 _estack = ORIGIN(RAM) + LENGTH(RAM);
 _Min_Heap_Size = 0x1000;
 
@@ -102,4 +102,3 @@ SECTIONS
     _end = .;
     PROVIDE ( end = . );
 }
-
