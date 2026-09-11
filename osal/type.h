@@ -13,7 +13,7 @@
 
 typedef unsigned char       BOOL;
 
-//芯片硬件字长，GD32E230 数据总线为32位，保证数据对齐到4字节
+//芯片硬件字长, 由移植层按目标平台定义(典型 32 位 MCU 为 4 字节对齐)
 typedef unsigned int        halDataAlign_t;
 
 // Unsigned numbers
@@ -70,39 +70,13 @@ typedef int32_t             int32;
 #endif
 
 /*
- * GD32E230 为 Cortex-M23 内核，临界区使用 PRIMASK 控制全局中断。
- * 若工程已提供 CMSIS core_cm23.h，则 __disable_irq/__enable_irq 由
- * CMSIS 提供；否则可在这里实现内联汇编版本。
+ * 本文件只定义 OSAL 核心层使用的类型与错误码, 不包含任何 MCU/编译器相关代码。
+ * 与硬件平台相关的接口(中断控制/临界区/空闲低功耗)由移植层提供的
+ * osal_hal.h 实现, 见各目标目录下的 hal/osal_hal.h:
+ *   - HAL_DISABLE_INTERRUPTS() / HAL_ENABLE_INTERRUPTS()
+ *   - HAL_ENTER_CRITICAL_SECTION() / HAL_EXIT_CRITICAL_SECTION()
+ *   - OSAL_IDLE_SLEEP()          (空闲低功耗, osal.c 使用)
  */
-#if defined(__GNUC__)
-
-#ifndef __disable_irq
-static __inline void __attribute__((always_inline)) __disable_irq(void)
-{
-    __asm volatile ("cpsid i" ::: "memory");
-}
-
-static __inline void __attribute__((always_inline)) __enable_irq(void)
-{
-    __asm volatile ("cpsie i" ::: "memory");
-}
-#endif
-
-#define CLI()         __disable_irq()                 // Disable Interrupts
-#define SEI()         __enable_irq()                 // Enable Interrupts
-
-#else
-
-#define CLI()         __set_PRIMASK(1)               // Disable Interrupts
-#define SEI()         __set_PRIMASK(0)               // Enable Interrupts
-
-#endif
-
-#define HAL_ENABLE_INTERRUPTS()         SEI()       // Enable Interrupts
-#define HAL_DISABLE_INTERRUPTS()        CLI()       // Disable Interrupts
-#define HAL_INTERRUPTS_ARE_ENABLED()    SEI()       // Enable Interrupts
-
-#define HAL_ENTER_CRITICAL_SECTION()    CLI()
-#define HAL_EXIT_CRITICAL_SECTION()     SEI()
+#include "osal_hal.h"
 
 #endif

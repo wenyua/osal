@@ -84,3 +84,22 @@ void OSAL_TIMER_TICKSTOP(void)
 {
     HAL_SYSTICK->CSR &= ~SYSTICK_CSR_ENABLE;
 }
+
+/**
+ * @brief Tickless 空闲: 将 SysTick 重配置为一次性定时,
+ *        timeout_ms 毫秒后产生一次中断唤醒 CPU。
+ */
+void OSAL_TIMER_ONESHOT(uint16 timeout_ms)
+{
+    HAL_SYSTICK->RVR = SystemCoreClock / 1000UL * timeout_ms - 1UL;
+    HAL_SYSTICK->CVR = 0u;
+    HAL_SYSTICK->CSR = SYSTICK_CSR_ENABLE | SYSTICK_CSR_TICKINT | SYSTICK_CSR_CLKSOURCE;
+}
+
+/**
+ * @brief 从一次性定时恢复为周期 tick (与 TICKINIT 相同)。
+ */
+void OSAL_TIMER_TICKRESTORE(void)
+{
+    OSAL_TIMER_TICKINIT();
+}

@@ -14,5 +14,7 @@ extern uint16 osal_get_timeoutEx(uint8 task_id, uint16 event_id);
 extern uint8 osal_timer_num_active(void);
 extern uint32 osal_GetSystemClock(void);
 extern void osal_update_timers(void);
+extern void osalTimerUpdate(uint16 updateTime);
+extern uint16 osal_next_timeout(void);
 
 #endif

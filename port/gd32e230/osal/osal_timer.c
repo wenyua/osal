@@ -493,6 +493,36 @@ uint32 osal_GetSystemClock(void)
 }
 
 /*********************************************************************
+ * @fn osal_next_timeout
+ *
+ * @brief   遍历软件定时器链表, 返回最近的到期时间(单位: tick)。
+ *          供低功耗空闲时决定可以睡多久。
+ *
+ * @return  最近的到期 tick 数, 0 表示无活动定时器
+ *********************************************************************/
+uint16 osal_next_timeout(void)
+{
+    uint16 min = 0;
+    osalTimerRec_t *srchTimer;
+
+    HAL_ENTER_CRITICAL_SECTION();
+
+    srchTimer = timerHead;
+    while(srchTimer != NULL)
+    {
+        if(srchTimer->event_flag && (min == 0 || srchTimer->timeout < min))
+        {
+            min = srchTimer->timeout;
+        }
+        srchTimer = srchTimer->next;
+    }
+
+    HAL_EXIT_CRITICAL_SECTION();
+
+    return min;
+}
+
+/*********************************************************************
  * @fn osal_update_timers
  *
  * @brief   Update the timer structures for timer ticks.

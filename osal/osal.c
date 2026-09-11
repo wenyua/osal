@@ -1,8 +1,11 @@
 #include "osal.h"
 #include "osal_event.h"
 #include "osal_memory.h"
+#include "osal_timer.h"
 
 #include <string.h>
+
+#define OSAL_IDLE_SLEEP_MIN_TICKS   2   /* 最近到期小于该值时不值得进入睡眠 */
 
 osal_msg_q_t osal_qHead;
 
@@ -55,11 +58,43 @@ void osal_start_system(void)
 {
     uint16 events;
     uint16 retEvents;
+    uint16 sleepTicks;
 
     while(1)
     {
         TaskActive = osalNextActiveTask();
-        if(TaskActive)
+        if(TaskActive == NULL)
+        {
+            /****************************************************
+             * 空闲: Tickless 低功耗
+             * - 最近定时器尚远: 重配硬件 tick 为一次性定时,
+             *   睡到下个定时器到期, 醒后一次性补偿软件定时器;
+             * - 否则: 普通 WFI, 睡一个周期 tick。
+             * 任意中断也可唤醒并走正常调度。
+             ****************************************************/
+            sleepTicks = osal_next_timeout();
+
+            HAL_ENTER_CRITICAL_SECTION();
+            if(sleepTicks > OSAL_IDLE_SLEEP_MIN_TICKS)
+            {
+                OSAL_TIMER_ONESHOT(sleepTicks * TICK_PERIOD_MS);
+                HAL_EXIT_CRITICAL_SECTION();
+
+                OSAL_IDLE_SLEEP();   /* 睡眠, 由一次性 tick 中断或其他中断唤醒 */
+
+                /* 醒来后一次性补偿睡掉的 tick, 触发到期定时器 */
+                HAL_ENTER_CRITICAL_SECTION();
+                osalTimerUpdate(sleepTicks);
+                OSAL_TIMER_TICKRESTORE();
+                HAL_EXIT_CRITICAL_SECTION();
+            }
+            else
+            {
+                HAL_EXIT_CRITICAL_SECTION();
+                OSAL_IDLE_SLEEP();
+            }
+        }
+        else
         {
             HAL_ENTER_CRITICAL_SECTION();
             events = TaskActive->events;
